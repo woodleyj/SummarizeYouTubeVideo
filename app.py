@@ -74,7 +74,7 @@ def main():
     if "transcript_filename" not in st.session_state:
         st.session_state.transcript_filename = None
 
-    summarize_button = st.button("Summarize", on_click=lambda: setattr(st.session_state, "is_processing", True), disabled=st.session_state.is_processing)
+    summarize_button = st.button("Summarize", on_click=lambda: setattr(st.session_state, "is_processing", True), disabled=st.session_state.is_processing or not api_key or not youtube_url)
 
     if summarize_button and st.session_state.is_processing:
         try:
