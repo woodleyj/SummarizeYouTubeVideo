@@ -2,11 +2,12 @@
 
 ## Overview
 YouTube Video Summarizer is a web application that allows you to generate a summary of any YouTube video with ease. This powerful tool can transcribe the audio of a YouTube video, and then use advanced AI to produce a concise summary of the content. It's a great way to quickly understand the key points of a video without having to watch the entire thing.
+![App](images/app.png)
 
 ## Features
-- Transcription of YouTube video audio
-- Automatic language detection
-- Summarization of video content using advanced AI
+- Transcription of YouTube video audio with OpenAI's Whisper library
+- Automatic language detection (Whisper)
+- Summarization of video content using OpenAI's **gpt-3.5-turbo** model
 - Downloadable transcripts with summaries
 - User-friendly and intuitive interface
 
@@ -42,7 +43,7 @@ YouTube Video Summarizer is a web application that allows you to generate a summ
 
 ## FAQ
 
-### Q: Why is the transcription a different language than the audio's language?
+### Q: *Why is the transcription a different language than the audio's language?*
 
 A: There could be a few reasons why the transcription may not match the language of the audio:
 
@@ -54,31 +55,30 @@ A: There could be a few reasons why the transcription may not match the language
 
 To resolve the issue, try selecting the correct language from the "Select language:" dropdown menu instead of using "Autodetect" or ensure that the correct language is chosen if you have manually selected one.
 
-### Q: Is there any cost associated with using this app?
+### Q: *Is there any cost associated with using this app?*
 
 A: The app itself is free to use, but it relies on the OpenAI API, which has its own pricing. Please refer to OpenAI's pricing page for more information about API usage costs.
 
-### Q: Are there any limitations on the length of the YouTube videos that can be summarized?
+### Q: *Are there any limitations on the length of the YouTube videos that can be summarized?*
 
 A: There's no strict limitation on the length of the videos. However, longer videos may take more time to process and may consume more tokens from your OpenAI API quota. Keep in mind that the summarization process might be less accurate for extremely long videos due to token limitations.
 
-### Q: How can I obtain an OpenAI API key?
+### Q: *How can I obtain an OpenAI API key?*
 
 A: You can apply for access to the OpenAI API on the OpenAI website. Once approved, you will receive an API key that you can use with this app.
 
-### Q: Can I use the app without an OpenAI API key?
-
+### Q: *Can I use the app without an OpenAI API key?*
 A: Unfortunately, you cannot use the app without a valid OpenAI API key, as the summarization feature relies on OpenAI's GPT-3 model.
 
-### Q: Is the app safe to use? What happens to the data I input?
+### Q: *Is the app safe to use? What happens to the data I input?*
 
 A: The app is designed for personal use, and the data you input is only used for the purpose of generating the summary. For users running the app locally, the transcriptions and summaries are saved in a folder called "transcripts" in the same directory as the app.py file. If you're using the app on Streamlit Cloud, the app owner/host should provide more information about data handling.
 
-### Q: How accurate is the transcription and summarization provided by the app?
+### Q: *How accurate is the transcription and summarization provided by the app?*
 
 A: The app uses advanced AI models for both transcription and summarization, which generally provide high-quality results. However, the accuracy may vary depending on factors such as audio quality, language, and the complexity of the content. Please note that the app is not perfect, and it's always a good idea to review the generated summary for accuracy and completeness.
 
-### Q: Can I use the app for languages other than English?
+### Q: *Can I use the app for languages other than English?*
 
 A: Currently, the app primarily supports English for transcription and summarization. However, the app's language detection feature can identify other languages in the video. Support for more languages may be added in the future.
 
