@@ -112,24 +112,8 @@ def summarize_audio(transcript_filename):
 
 def main():
     # Add the title and GitHub link at the top
-    st.markdown(
-        """
-        <style>
-            .title {
-                display: inline;
-            }
-            .github-link {
-                display: inline;
-                float: right;
-            }
-        </style>
-        <div>
-            <h1 class="title">YouTube Video Summarizer</h1>
-            <a class="github-link" href="https://github.com/woodleyj/SummarizeYouTubeVideo" target="_blank">ReadMe</a>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown("# YouTube Video Summarizer")
+    st.markdown("[README](https://github.com/woodleyj/SummarizeYouTubeVideo)")
     os.makedirs(TRANSCRIPT_DIR, exist_ok=True)
     api_key = st.text_input("Enter your OpenAI API key:", type="password", key="api_key")
     openai.api_key = api_key
