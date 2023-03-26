@@ -7,6 +7,11 @@ import streamlit as st
 import openai
 import whisper
 import tiktoken
+from contextlib import contextmanager
+from io import StringIO
+from streamlit.runtime.scriptrunner.script_run_context import SCRIPT_RUN_CONTEXT_ATTR_NAME
+from threading import current_thread
+import sys
 
 # CONFIG
 AUDIO_FILENAME = "temp-audio.mp4"
@@ -17,6 +22,37 @@ TIKTOKEN_ENCODING_TYPE = tiktoken.encoding_for_model(GPT_MODEL)
 SYSTEM_PROMPT = "You are a helpful assistant."
 
 st.set_page_config(layout="wide")
+
+@contextmanager
+def st_redirect(src, dst):
+    placeholder = st.empty()
+    output_func = getattr(placeholder, dst)
+
+    with StringIO() as buffer:
+        old_write = src.write
+
+        def new_write(b):
+            if getattr(current_thread(), SCRIPT_RUN_CONTEXT_ATTR_NAME, None):
+                buffer.write(b)
+                output_func(buffer.getvalue())
+            else:
+                old_write(b)
+
+        try:
+            src.write = new_write
+            yield
+        finally:
+            src.write = old_write
+
+@contextmanager
+def st_stdout(dst):
+    with st_redirect(sys.stdout, dst):
+        yield
+
+@contextmanager
+def st_stderr(dst):
+    with st_redirect(sys.stderr, dst):
+        yield
 
 def download_audio(url):
     yt = YouTube(url)
@@ -29,9 +65,23 @@ def download_audio(url):
     yt.streams.filter(only_audio=True).first().download(filename=AUDIO_FILENAME)
     return transcript_filename
 
-def transcribe_audio(transcript_filename):
+def transcribe_audio(transcript_filename, language):
     model = whisper.load_model("base")
-    result = model.transcribe(AUDIO_FILENAME, fp16=False)
+    if language == "Autodetect":
+        language = None
+        # detect language of video and display to user
+        audio = whisper.load_audio(AUDIO_FILENAME)
+        audio = whisper.pad_or_trim(audio)
+        mel = whisper.log_mel_spectrogram(audio).to(model.device)
+        # detect language
+        _, probs = model.detect_language(mel)
+        detected_language = max(probs, key=probs.get)
+        with st_stdout("info"):
+            print(f"Detected language: {detected_language}")
+    else:
+        language = "en"
+    with st_stdout("code"):
+        result = model.transcribe(AUDIO_FILENAME, fp16=False, no_speech_threshold=0.7, language="en", verbose=True)
     with open(f"{TRANSCRIPT_DIR}//{transcript_filename}", "a") as f:
         f.write(result["text"])
 
@@ -63,9 +113,10 @@ def summarize_audio(transcript_filename):
 def main():
     st.title("YouTube Video Summarizer")
     os.makedirs(TRANSCRIPT_DIR, exist_ok=True)
-    api_key = st.text_input("Enter your OpenAI API key:", type="password")
+    api_key = st.text_input("Enter your OpenAI API key:", type="password", key="api_key")
     openai.api_key = api_key
-    youtube_url = st.text_input("Enter the YouTube URL of the video you want to summarize:")
+    youtube_url = st.text_input("Enter the YouTube URL of the video you want to summarize:", key="youtube_url")
+    language = st.selectbox("Select language:", ["English", "Autodetect"])
 
     if "is_processing" not in st.session_state:
         st.session_state.is_processing = False
@@ -76,12 +127,15 @@ def main():
 
     summarize_button = st.button("Summarize", on_click=lambda: setattr(st.session_state, "is_processing", True), disabled=st.session_state.is_processing or not api_key or not youtube_url)
 
+    # Create a placeholder for the download button
+    download_button_placeholder = st.empty()
+
     if summarize_button and st.session_state.is_processing:
         try:
             with st.spinner("Downloading audio..."):
                 st.session_state.transcript_filename = download_audio(youtube_url)
             with st.spinner("Transcribing audio..."):
-                transcribe_audio(st.session_state.transcript_filename)
+                transcribe_audio(st.session_state.transcript_filename, language)
             with st.spinner("Summarizing transcript..."):
                 st.session_state.summary = summarize_audio(st.session_state.transcript_filename)
             st.session_state.is_processing = False
@@ -93,12 +147,22 @@ def main():
         st.write(st.session_state.summary)
         with open(f"{TRANSCRIPT_DIR}//{st.session_state.transcript_filename}", "r") as file:
             transcript_data = file.read()
-        st.download_button(
+        # Update the download button placeholder when the file is ready to be downloaded
+        download_button_placeholder.download_button(
             label="Download Transcript",
             data=transcript_data,
             file_name=st.session_state.transcript_filename,
             mime="text/plain",
         )
+    # else:
+    #     # Show the disabled download button when the file is not ready
+    #     download_button_placeholder.download_button(
+    #         label="Download Transcript",
+    #         data="",
+    #         file_name="",
+    #         mime="text/plain",
+    #         disabled=True,
+    #     )
 
 if __name__ == "__main__":
     main()
