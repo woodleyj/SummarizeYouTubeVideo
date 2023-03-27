@@ -87,6 +87,7 @@ def transcribe_audio(transcript_filename, language):
     with open(f"{TRANSCRIPT_DIR}//{transcript_filename}", "a") as f:
         f.write(result["text"])
 
+@backoff.on_exception(backoff.expo, openai.error.RateLimitError)
 def summarize_audio(transcript_filename):
     with open(f"{TRANSCRIPT_DIR}//{transcript_filename}", "r") as f:
         transcript = f.read()
