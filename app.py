@@ -114,7 +114,7 @@ def summarize_audio(transcript_filename):
 
 def main():
     # Add the title and GitHub link at the top
-    st.markdown("# YouTube Video Summarizer")
+    st.markdown("# YouTube Video Summarizer (beta)")
     st.markdown("[README](https://github.com/woodleyj/SummarizeYouTubeVideo)")
     os.makedirs(TRANSCRIPT_DIR, exist_ok=True)
     api_key = st.text_input("Enter your OpenAI API key:", type="password", key="api_key")
