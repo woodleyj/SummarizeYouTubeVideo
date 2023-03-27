@@ -2,5 +2,6 @@ numpy
 streamlit
 openai
 tiktoken
+backoff
 git+https://github.com/openai/whisper.git
 git+https://github.com/pytube/pytube
