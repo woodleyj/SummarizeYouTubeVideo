@@ -97,17 +97,24 @@ def summarize_audio(transcript_filename):
     num_chunks = math.ceil(num_tokens / MAX_PROMPT_TOKENS)
     chunks = np.array_split(words, num_chunks)
     summary_responses = []
-    for chunk in chunks:
-        sentences = ' '.join(list(chunk))
-        prompt = f"{sentences}\n\ntl;dr:"
-        response = openai.ChatCompletion.create(
-            model=GPT_MODEL,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-    ]
-    )
-        summary_responses.append(response.choices[0].message.content)
+
+    try:
+        for chunk in chunks:
+            sentences = ' '.join(list(chunk))
+            prompt = f"{sentences}\n\ntl;dr:"
+            response = openai.ChatCompletion.create(
+                model=GPT_MODEL,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt}
+        ]
+        )
+            summary_responses.append(response.choices[0].message.content)
+    except openai.OpenAIError as error:
+        if error.http_status == 429:
+            with st_stdout("error"):
+                print("OpenAI quota exceeded!  Please check your account billing status and increase the quota if needed.  If you are on a free account please consider upgrading to a pay as you go plan.")
+
     full_summary = ''.join(summary_responses)
     with open(f"{TRANSCRIPT_DIR}//{transcript_filename}", "a") as f:
         f.write(f"\n\n====SUMMARY====\nNumber of tokens in transcript: {num_tokens}\n\n{full_summary}\n\n")
