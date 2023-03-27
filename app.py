@@ -142,7 +142,7 @@ def main():
     
     summarize_button = st.button("Summarize", on_click=lambda: setattr(st.session_state, "is_processing", True), disabled=st.session_state.is_processing or not api_key or not youtube_url)
 
-    # Create a placeholder for the download button
+    # Create a placeholders for buttons and text
     download_button_placeholder = st.empty()
 
     summary_text = st.markdown("")
