@@ -181,5 +181,11 @@ def main():
     #         disabled=True,
     #     )
 
+
+
+def moved():
+    st.markdown("This app has moved to [woodleyj-ytsummarizer.hf.space](https://woodleyj-ytsummarizer.hf.space)")
+
 if __name__ == "__main__":
-    main()
+    # main()
+    moved()
