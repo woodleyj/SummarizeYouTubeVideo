@@ -87,6 +87,7 @@ def transcribe_audio(transcript_filename, language):
     with open(f"{TRANSCRIPT_DIR}//{transcript_filename}", "a") as f:
         f.write(result["text"])
 
+@backoff.on_exception(backoff.expo, exception=[openai.error.RateLimitError, openai.error.Timeout], max_time=60)
 def summarize_audio(transcript_filename):
     with open(f"{TRANSCRIPT_DIR}//{transcript_filename}", "r") as f:
         transcript = f.read()
@@ -96,17 +97,26 @@ def summarize_audio(transcript_filename):
     num_chunks = math.ceil(num_tokens / MAX_PROMPT_TOKENS)
     chunks = np.array_split(words, num_chunks)
     summary_responses = []
-    for chunk in chunks:
-        sentences = ' '.join(list(chunk))
-        prompt = f"{sentences}\n\ntl;dr:"
-        response = openai.ChatCompletion.create(
-            model=GPT_MODEL,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-    ]
-    )
-        summary_responses.append(response.choices[0].message.content)
+
+    try:
+        # raise(openai.OpenAIError(message="test", http_status=429))
+        for chunk in chunks:
+            sentences = ' '.join(list(chunk))
+            prompt = f"{sentences}\n\ntl;dr:"
+            response = openai.ChatCompletion.create(
+                model=GPT_MODEL,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt}
+        ]
+        )
+            summary_responses.append(response.choices[0].message.content)
+
+    except openai.OpenAIError as error:
+        if error.http_status == 429:
+            with st_stdout("error"):
+                print("OpenAI quota exceeded!  Please check your account billing status and increase the quota if needed.  If you are on a free account please consider upgrading to a pay as you go plan.")
+
     full_summary = ''.join(summary_responses)
     with open(f"{TRANSCRIPT_DIR}//{transcript_filename}", "a") as f:
         f.write(f"\n\n====SUMMARY====\nNumber of tokens in transcript: {num_tokens}\n\n{full_summary}\n\n")
@@ -129,10 +139,14 @@ def main():
     if "transcript_filename" not in st.session_state:
         st.session_state.transcript_filename = None
 
+    
     summarize_button = st.button("Summarize", on_click=lambda: setattr(st.session_state, "is_processing", True), disabled=st.session_state.is_processing or not api_key or not youtube_url)
 
     # Create a placeholder for the download button
     download_button_placeholder = st.empty()
+
+    summary_text = st.markdown("")
+
 
     if summarize_button and st.session_state.is_processing:
         try:
@@ -146,9 +160,8 @@ def main():
         except Exception as e:
             st.error(f"Error: {e}")
             st.session_state.is_processing = False
-
     if st.session_state.summary and st.session_state.transcript_filename:
-        st.write(st.session_state.summary)
+        summary_text.write(f"SUMMARY:\n\n{st.session_state.summary}")
         with open(f"{TRANSCRIPT_DIR}//{st.session_state.transcript_filename}", "r") as file:
             transcript_data = file.read()
         # Update the download button placeholder when the file is ready to be downloaded
