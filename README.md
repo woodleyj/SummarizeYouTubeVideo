@@ -1,4 +1,5 @@
 # YouTube Video Summarizer
+*Update:* After changing hosting service to Hugging Face, I have updated the source code here to let visitors of the old link know where to go.  If you clone this repo make sure to update the app.py file to run the main() function instead of moved().
 
 ## Overview
 YouTube Video Summarizer is a web application that allows you to generate a summary of any YouTube video with ease. This powerful tool can transcribe the audio of a YouTube video, and then use advanced AI to produce a concise summary of the content. It's a great way to quickly understand the key points of a video without having to watch the entire thing.
@@ -23,9 +24,9 @@ YouTube Video Summarizer is a web application that allows you to generate a summ
 
 5. Follow the steps explained in the "Using the App" section below.
 
-## How to Use (Streamlit Cloud)
+## How to Use (Web)
 
-1. Navigate to the YouTube Video Summarizer app hosted on Streamlit Cloud (the app URL will be provided by the app owner or administrator).
+1. Navigate to the YouTube Video Summarizer app hosted on Hugging Face:  https://woodleyj-ytsummarizer.hf.space.
 
 2. Follow the steps explained in the "Using the App" section below.
 
